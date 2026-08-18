@@ -4,7 +4,7 @@ DeepSeek Harness Web 界面**侧边栏一键重启按钮**——并且带**强�
 
 | | |
 |---|---|
-| 按钮 | 侧边栏底部、设置按钮旁的重启入口（↻） |
+| 按钮 | 紧贴侧边栏折叠按钮的紧凑重启图标（↻）——展开时位于"收起侧边栏"左侧，56px 收起栏中位于"打开侧边栏"上方 |
 | 安全 | 必须先**连续确认两次**才会触发重启 |
 | 范围 | 重启 `dsh web` 进程——WebUI 与 Harness 后台是**同一个进程**，重启后两者一起恢复 |
 | 重新拉起 | 自动以**启动 DSH 时的完全相同的命令**重新运行（`process.execPath + process.argv`）——无硬编码路径，所有参数（`--host`、`--port`、`--trusted-host`、profile）原样保留 |
@@ -14,6 +14,7 @@ DeepSeek Harness Web 界面**侧边栏一键重启按钮**——并且带**强�
 ## 功能特性
 
 - **二次确认** —— 点击按钮先弹出第一个对话框（"是否重启？"），再弹出最终警告框（"真的要重启吗？连接将中断约 15–20 秒"）。只有第二次确认才会发送请求，两个对话框都可以取消。
+- **自适应位置** —— 通过 DOM 放置把按钮钉在侧边栏折叠按钮旁：展开时位于"收起侧边栏"左侧，56px 收起栏中位于"打开侧边栏"上方。MutationObserver 保证在重渲染和折叠/展开切换后位置始终正确。
 - **自动重新拉起** —— 杀掉进程后，插件用相同参数、相同工作目录重新启动 DSH，会话/任务（持久化在磁盘上）自动恢复，页面自动重连。
 - **跨平台、零硬编码路径** —— 重启命令直接从当前运行进程自身重建，兼容任何启动方式（命令行、PWA、supervisor 脚本）。
 - **优雅杀进程** —— 先发 SIGTERM，进程仍存活才用 SIGKILL。
@@ -70,7 +71,7 @@ dsh plugin --profile web add github:seanwhy/dsh-restart-confirm
 | 层 | 文件 | 作用 |
 | --- | --- | --- |
 | Host | `lib/index.js` | 在 webServer 注册 `GET /dsh-health` 与 `POST /restart-dsh`；启动独立后台助手：等待 → SIGTERM →（SIGKILL）→ 用原始 argv 重新拉起 |
-| Client | `lib/client.js` | 注册侧边栏底部按钮（slot `sidebar.footer.action`）；二次确认弹窗；轮询 `GET /dsh-health` 显示状态点 |
+| Client | `lib/client.js` | 纯 vanilla（无 React）客户端，通过 DOM 放置把紧凑图标按钮钉在侧边栏折叠按钮旁；二次确认弹窗；轮询 `GET /dsh-health` 显示状态点 |
 | Bundle | `cordis.patch.yml` | 挂载两半的加载行 |
 
 处理函数**先回复浏览器**再执行杀进程；所有延迟都由助手脚本承担，因此不需要宿主定时器（webServer 回调在 Cordis fiber 之外，宿主定时器会被丢弃）。
@@ -87,7 +88,7 @@ dsh plugin --profile web add github:seanwhy/dsh-restart-confirm
 
 ## 开发
 
-客户端 bundle 是手写的、符合 DSH Web shell 线格式（`window.__ModuleLoader__.load({ id, factory })`），无需构建步骤：
+客户端 bundle 是手写的、符合 DSH Web shell 线格式（`window.__ModuleLoader__.load({ id, factory })`），无需构建步骤、无任何依赖（不用 React）。通过稳定的 aria-label 和 CSS-module 类后缀定位侧边栏折叠按钮，不硬编码任何 hash 类名：
 
 ```bash
 node --check lib/index.js

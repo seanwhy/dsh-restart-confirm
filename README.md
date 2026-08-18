@@ -4,7 +4,7 @@ Sidebar **one-click restart button** for the **DeepSeek Harness Web UI** — wit
 
 | | |
 |---|---|
-| Button | A restart action (↻) in the sidebar footer, beside Settings |
+| Button | A compact restart icon (↻) pinned to the sidebar fold toggle — left of "收起侧边栏" when expanded, above "打开侧边栏" in the 56px rail |
 | Safety | You must confirm **twice** before the restart is triggered |
 | Scope | Restarts the `dsh web` process — the WebUI **and** the harness backend are the same process, so both come back together |
 | Relaunch | Automatically re-runs the **exact command** that started DSH (`process.execPath + process.argv`) — no hardcoded paths, all flags (`--host`, `--port`, `--trusted-host`, profile) preserved |
@@ -14,6 +14,7 @@ Sidebar **one-click restart button** for the **DeepSeek Harness Web UI** — wit
 ## Features
 
 - **Two-step confirmation** — clicking the button opens a first dialog ("restart?"), then a final warning dialog ("really restart? connection will drop for ~15–20 s"). Only the second confirm sends the request. Both dialogs can be cancelled.
+- **Adaptive placement** — the button is pinned next to the sidebar fold toggle via DOM placement: left of the collapse toggle when the sidebar is expanded, above the expand toggle in the 56px rail. A MutationObserver keeps it pinned through re-renders and collapse/expand transitions.
 - **Auto-relaunch** — after killing the process, the plugin re-launches DSH with the same argv from the same working directory, so sessions/tasks (persisted on disk) recover and the page reconnects by itself.
 - **Cross-platform, zero hardcoded paths** — the relaunch command is reconstructed from the running process itself. Works with any launcher (CLI, PWA, supervisor script).
 - **Graceful kill** — SIGTERM first, SIGKILL only if the process lingers.
@@ -70,7 +71,7 @@ Plugin config (Settings → Plugins → dsh-restart-confirm → config, or the p
 | Layer | File | What it does |
 | --- | --- | --- |
 | Host | `lib/index.js` | Registers `GET /dsh-health` + `POST /restart-dsh` on the webServer; launches a detached helper that sleeps → SIGTERM → (SIGKILL) → relaunches with the original argv |
-| Client | `lib/client.js` | Registers the sidebar footer button (slot `sidebar.footer.action`); two-step confirm dialog; polls `GET /dsh-health` for the status dot |
+| Client | `lib/client.js` | Vanilla (no React) client that pins a compact icon button next to the sidebar fold toggle by DOM placement; two-step confirm dialog; polls `GET /dsh-health` for the status dot |
 | Bundle | `cordis.patch.yml` | The loader row that mounts both halves |
 
 The handler replies **before** the kill happens; the helper script carries all the delays, so no host timer (which would be dropped outside a Cordis fiber) is needed.
@@ -87,7 +88,7 @@ If the plugin killed DSH from inside its own process, nothing would be left to r
 
 ## Development
 
-The client bundle is hand-written in the exact wire format (`window.__ModuleLoader__.load({ id, factory })`), so no build step is required:
+The client bundle is hand-written in the exact wire format (`window.__ModuleLoader__.load({ id, factory })`) with no build step. It is dependency-free (no React), locating the sidebar fold toggle by its stable aria-labels and CSS-module class suffixes so no hashed class is hard-coded:
 
 ```bash
 node --check lib/index.js
