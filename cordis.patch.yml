@@ -1,0 +1,9 @@
+# dsh-restart-confirm — bundle patch: one plugin row loading both halves.
+# The host half (lib/index.js) registers POST /restart-dsh + GET /dsh-health on
+# the webServer and relaunches the dsh web process with its original argv.
+# The client half (lib/client.js) registers the sidebar footer button with a
+# two-step confirmation dialog. The row id stays `dsh-restart-confirm`; the
+# client-module graph id (package name) is `dsh-restart-confirm`.
+- insert:
+    - id: dsh-restart-confirm
+      name: dsh-restart-confirm

@@ -1,0 +1,47 @@
+{
+  "name": "dsh-restart-confirm",
+  "version": "0.1.0",
+  "description": "Sidebar restart button for DeepSeek Harness with double confirmation: one click opens a two-step confirm flow, then restarts the dsh web process (WebUI + backend, one process) and auto-relaunches it with the same args. Cross-platform (macOS/Linux/Windows), no hardcoded paths, configurable. / DeepSeek Harness 侧边栏一键重启按钮（带二次确认）：点击后需连续两次确认才会重启 dsh web 进程（WebUI 与后台同属该进程），并以相同参数自动重新拉起。跨平台（macOS/Linux/Windows），无硬编码路径，可配置。",
+  "private": false,
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "LICENSE",
+    "README.md",
+    "README.zh.md"
+  ],
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "web",
+    "restart",
+    "confirm",
+    "ui"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ],
+      "platform": "web"
+    }
+  }
+}
