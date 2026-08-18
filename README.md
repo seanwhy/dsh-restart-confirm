@@ -9,13 +9,13 @@ Sidebar **one-click restart button** for the **DeepSeek Harness Web UI** — wit
 | Scope | Restarts the `dsh web` process — the WebUI **and** the harness backend are the same process, so both come back together |
 | Relaunch | Automatically re-runs the **exact command** that started DSH (`process.execPath + process.argv`) — no hardcoded paths, all flags (`--host`, `--port`, `--trusted-host`, profile) preserved |
 | Platform | macOS · Linux · Windows (detached helper survives the kill) |
-| Status dot | Polls `GET /dsh-health` every 5s — green online / red offline or restarting |
+| Pending dot | Hidden by default; polls the marketplace operation snapshot every 5s and turns green only when another plugin is pending install/update/removal (restart required) |
 
 ## Features
 
-- **Two-step confirmation** — clicking the button opens a first dialog ("restart?"), then a final warning dialog ("really restart? connection will drop for ~15–20 s"). Only the second confirm sends the request. Both dialogs can be cancelled.
-- **Adaptive placement** — the button is pinned next to the sidebar fold toggle via DOM placement: left of the collapse toggle when the sidebar is expanded, above the expand toggle in the 56px rail. A MutationObserver keeps it pinned through re-renders and collapse/expand transitions.
-- **Auto-relaunch** — after killing the process, the plugin re-launches DSH with the same argv from the same working directory, so sessions/tasks (persisted on disk) recover and the page reconnects by itself.
+- **Two-step confirmation** — clicking the button opens a first dialog ("restart?"), then a final warning dialog. Only the second confirm sends the request. Both dialogs can be cancelled.
+- **Adaptive placement and sizing** — the button is pinned next to the sidebar fold toggle via DOM placement: left of the collapse toggle when the sidebar is expanded, above the expand toggle in the 56px rail. Its SVG is 16px in the expanded row and 18px in the rail; a MutationObserver keeps it pinned through re-renders and collapse/expand transitions.
+- **Auto-relaunch and immediate refresh** — after killing the process, the plugin re-launches DSH with the same argv from the same working directory. The client compares the health endpoint's per-process boot identity and reloads immediately when the new process is ready; there is no fixed 15–20 second client wait.
 - **Cross-platform, zero hardcoded paths** — the relaunch command is reconstructed from the running process itself. Works with any launcher (CLI, PWA, supervisor script).
 - **Graceful kill** — SIGTERM first, SIGKILL only if the process lingers.
 - **Configurable** — delay before kill, delay before relaunch, optional custom restart command, optional kill-only mode (external supervisor).
@@ -70,11 +70,11 @@ Plugin config (Settings → Plugins → dsh-restart-confirm → config, or the p
 
 | Layer | File | What it does |
 | --- | --- | --- |
-| Host | `lib/index.js` | Registers `GET /dsh-health` + `POST /restart-dsh` on the webServer; launches a detached helper that sleeps → SIGTERM → (SIGKILL) → relaunches with the original argv |
-| Client | `lib/client.js` | Vanilla (no React) client that pins a compact icon button next to the sidebar fold toggle by DOM placement; two-step confirm dialog; polls `GET /dsh-health` for the status dot |
+| Host | `lib/index.js` | Registers `GET /dsh-health` (including a per-process `bootId`) + `POST /restart-dsh`; launches a detached helper that sleeps → SIGTERM → (SIGKILL) → relaunches with the original argv |
+| Client | `lib/client.js` | Vanilla (no React) client that pins the sized icon button by DOM placement; shows a dot only for marketplace pending plugin operations; waits for a changed `bootId` and reloads as soon as the new server is healthy |
 | Bundle | `cordis.patch.yml` | The loader row that mounts both halves |
 
-The handler replies **before** the kill happens; the helper script carries all the delays, so no host timer (which would be dropped outside a Cordis fiber) is needed.
+The handler replies **before** the kill happens; the helper script carries the kill/relaunch delays. The client does not guess when the restart is done: it polls the health endpoint and reloads as soon as the boot identity changes.
 
 ### Why an independent helper process?
 
