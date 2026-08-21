@@ -23,6 +23,14 @@ Sidebar **one-click restart button** for the **DeepSeek Harness Web UI** — wit
 - **Loopback-only** — the restart endpoint refuses non-loopback callers.
 - **Theme-aware UI** — uses DSH's own `--dsw-alias-*` tokens, so the button and dialogs follow light/dark theme.
 
+## Compatibility
+
+Version `0.1.2` is adapted for DSH `0.1.0-rc.6` through `0.1.0-rc.8`. The
+client injects only the runtime and locates the sidebar through public labels,
+slot/data attributes, and class suffixes; it does not require the sidebar
+client package to be in this plugin's own injection graph. The host also sends
+the workspace root in its shell sandbox policy for the newer shell contract.
+
 ## Install
 
 ### Option A — GitHub (recommended)
@@ -88,7 +96,7 @@ If the plugin killed DSH from inside its own process, nothing would be left to r
 
 ## Development
 
-The client bundle is hand-written in the exact wire format (`window.__ModuleLoader__.load({ id, factory })`) with no build step. It is dependency-free (no React), locating the sidebar fold toggle by its stable aria-labels and CSS-module class suffixes so no hashed class is hard-coded:
+The client bundle is hand-written in the exact wire format (`window.__ModuleLoader__.load({ id, factory })`) with no build step. It is dependency-free (no React), locating the sidebar fold toggle by stable aria-labels plus public slot/data hooks and CSS-module class suffixes so no hashed class is hard-coded:
 
 ```bash
 node --check lib/index.js

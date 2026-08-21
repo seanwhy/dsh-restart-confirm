@@ -23,6 +23,10 @@ DeepSeek Harness Web 界面**侧边栏一键重启按钮**——并且带**强�
 - **仅本机回环** —— 重启接口拒绝非回环地址的调用。
 - **跟随主题** —— 使用 DSH 自带的 `--dsw-alias-*` 令牌，按钮与弹窗自动适配明/暗主题。
 
+## 兼容性
+
+`0.1.2` 已针对 DSH `0.1.0-rc.6` 到 `0.1.0-rc.8` 做适配。客户端只注入 runtime，并通过公开的标签、slot/data 属性和类名后缀定位侧边栏，不再要求侧边栏客户端包出现在本插件自己的注入图中；Host 端也会按新版 shell 合约传递 workspace root。
+
 ## 安装
 
 ### 方式 A —— GitHub（推荐）
@@ -88,7 +92,7 @@ dsh plugin --profile web add github:seanwhy/dsh-restart-confirm
 
 ## 开发
 
-客户端 bundle 是手写的、符合 DSH Web shell 线格式（`window.__ModuleLoader__.load({ id, factory })`），无需构建步骤、无任何依赖（不用 React）。通过稳定的 aria-label 和 CSS-module 类后缀定位侧边栏折叠按钮，不硬编码任何 hash 类名：
+客户端 bundle 是手写的、符合 DSH Web shell 线格式（`window.__ModuleLoader__.load({ id, factory })`），无需构建步骤、无任何依赖（不用 React）。通过稳定的 aria-label、公开的 slot/data hook 和 CSS-module 类后缀定位侧边栏折叠按钮，不硬编码任何 hash 类名：
 
 ```bash
 node --check lib/index.js
